@@ -4,7 +4,7 @@ type Props = {
   rotulo: string
   valor: string
   aoMudar: (valor: string) => void
-  tipo?: 'text' | 'password'
+  tipo?: 'text' | 'password' | 'date' | 'time' | 'number'
   erro?: string
   exemplo?: string
   autoPreenchimento?: string
