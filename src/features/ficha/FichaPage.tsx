@@ -88,7 +88,9 @@ export function FichaPage() {
           />
         </label>
         <div className="flex items-center gap-4">
-          <Botao onClick={() => void registrar()}>Registrar anotação</Botao>
+          <Botao onClick={() => void registrar()} disabled={criar.isPending}>
+            Registrar anotação
+          </Botao>
           <span className="text-xs text-tinta-3">
             Anotação não tem PUT — o histórico não é editável.
           </span>

@@ -95,6 +95,35 @@ describe('FichaPage', () => {
     await waitFor(() => expect(campo).toHaveValue(''))
   })
 
+  /**
+   * Anotacao nao tem PUT nem DELETE: uma gravacao duplicada por duplo clique
+   * fica no historico para sempre. O botao trava enquanto o POST esta em voo.
+   */
+  it('trava o registro enquanto o POST esta em voo', async () => {
+    let liberar: () => void = () => {}
+    const emVoo = new Promise<void>((resolve) => {
+      liberar = resolve
+    })
+    servidorDeTeste.use(
+      http.get(`/pacientes/${ID}/anotacoes`, () => HttpResponse.json(pagina([]))),
+      http.post(`/pacientes/${ID}/anotacoes`, async () => {
+        await emVoo
+        return HttpResponse.json(
+          { id: 'nova', conteudo: 'Sessão de hoje.', createdAt: '2026-08-26', pacienteId: ID },
+          { status: 201 },
+        )
+      }),
+    )
+
+    renderizarComRotas(ROTAS, `/pacientes/${ID}`)
+    await userEvent.type(await screen.findByLabelText('Anotação da sessão'), 'Sessão de hoje.')
+    const registrar = screen.getByRole('button', { name: 'Registrar anotação' })
+    await userEvent.click(registrar)
+
+    await waitFor(() => expect(registrar).toBeDisabled())
+    liberar()
+  })
+
   it('mostra o rodape de paginacao lendo page.totalElements', async () => {
     servidorDeTeste.use(
       http.get(`/pacientes/${ID}/anotacoes`, () =>

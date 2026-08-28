@@ -62,7 +62,9 @@ export function PacientesPage() {
             exemplo="1991-04-12"
             erro={erroDoCampo('dataNascimento', nascimento)}
           />
-          <Botao onClick={() => void cadastrar()}>Cadastrar</Botao>
+          <Botao onClick={() => void cadastrar()} disabled={criar.isPending}>
+            Cadastrar
+          </Botao>
         </section>
       ) : null}
 
