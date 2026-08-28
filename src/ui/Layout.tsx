@@ -3,7 +3,11 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useSessao } from '../features/auth/useSessao'
 import { Botao } from './Botao'
 
-const ITENS = [{ para: '/pacientes', rotulo: 'Pacientes' }]
+const ITENS = [
+  { para: '/agenda', rotulo: 'Agenda' },
+  { para: '/pacientes', rotulo: 'Pacientes' },
+  { para: '/auditoria', rotulo: 'Trilha' },
+]
 
 /**
  * A moldura e constante: mesma barra, mesma coluna, mesma medida em toda tela.

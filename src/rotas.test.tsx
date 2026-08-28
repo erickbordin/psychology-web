@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -36,15 +36,40 @@ describe('rotas', () => {
    * Guarda de regressao do defeito que o E2E de fumaca achou: o LoginPage ficava
    * numa tela morta depois de autenticar, em vez de entrar na aplicacao.
    */
-  it('com sessao, quem chega no login e levado para a lista de pacientes', async () => {
+  it('com sessao, quem chega no login entra na aplicacao', async () => {
     servidorDeTeste.use(
       http.post('/auth/refresh', () => HttpResponse.json({ token: 'token-bom' })),
-      http.get('/pacientes', () => HttpResponse.json([])),
+      http.get('/consultas', () => HttpResponse.json([])),
     )
 
     renderizarComRotas(definicaoDeRotas, '/login')
 
-    expect(await screen.findByRole('heading', { name: 'Pacientes' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Agenda' })).toBeInTheDocument()
+  })
+
+  it('a raiz cai na agenda do dia', async () => {
+    const intervalos: string[] = []
+    servidorDeTeste.use(
+      http.post('/auth/refresh', () => HttpResponse.json({ token: 'token-bom' })),
+      http.get('/consultas', ({ request }) => {
+        const busca = new URL(request.url).searchParams
+        intervalos.push(`${busca.get('de')}..${busca.get('ate')}`)
+        return HttpResponse.json([])
+      }),
+    )
+
+    renderizarComRotas(definicaoDeRotas, '/')
+
+    expect(await screen.findByRole('heading', { name: 'Agenda' })).toBeInTheDocument()
+    const hoje = new Date()
+    const iso = [
+      hoje.getFullYear(),
+      String(hoje.getMonth() + 1).padStart(2, '0'),
+      String(hoje.getDate()).padStart(2, '0'),
+    ].join('-')
+    // o cabecalho aparece antes de a chamada chegar no handler do MSW: sem o
+    // waitFor a assercao corre cedo e o teste falha um dia sim, outro nao
+    await waitFor(() => expect(intervalos).toContain(`${iso}..${iso}`))
   })
 
   it('mostra carregando enquanto o refresh do boot nao resolve', () => {
