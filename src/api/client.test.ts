@@ -20,7 +20,7 @@ describe('cliente HTTP', () => {
           {
             status: 400,
             mensagem: 'Erro de validação',
-            erros: [{ campo: 'nome', mensagem: 'campo obrigatorio' }],
+            erros: [{ campo: 'nome', erro: 'campo obrigatorio' }],
           },
           { status: 400 },
         ),
@@ -31,7 +31,7 @@ describe('cliente HTTP', () => {
 
     expect(erro).toBeInstanceOf(ErroApi)
     expect(erro.status).toBe(400)
-    expect(erro.erros).toEqual([{ campo: 'nome', mensagem: 'campo obrigatorio' }])
+    expect(erro.erros).toEqual([{ campo: 'nome', erro: 'campo obrigatorio' }])
     expect(erro.mensagemDoCampo('nome')).toBe('campo obrigatorio')
   })
 

@@ -20,6 +20,15 @@ export class ErroApi extends Error {
 
   /** Mensagem do campo, para o formulario marcar o input certo. */
   mensagemDoCampo(campo: string): string | undefined {
-    return this.erros.find((erro) => erro.campo === campo)?.mensagem
+    return this.erros.find((item) => item.campo === campo)?.erro
+  }
+
+  /**
+   * Erros de campo que o formulario nao tem onde mostrar. Sem resgatar isso, um
+   * 400 apontando um campo que a tela nao renderiza nao aparece em lugar nenhum:
+   * o campo nao existe para marcar, e a lista nao vazia esconde o aviso geral.
+   */
+  errosForaDe(campos: string[]): ErroCampo[] {
+    return this.erros.filter((item) => !campos.includes(item.campo))
   }
 }

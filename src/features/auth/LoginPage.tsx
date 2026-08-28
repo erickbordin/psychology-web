@@ -10,6 +10,8 @@ import { useSessao } from './useSessao'
 
 type Modo = 'login' | 'registro'
 
+const CAMPOS_DO_FORMULARIO = ['nome', 'email', 'emailUsuario', 'senha']
+
 export function LoginPage() {
   const { autenticado, entrar } = useSessao()
   const local = useLocation()
@@ -99,8 +101,17 @@ export function LoginPage() {
     if (falha.status === 0) {
       return 'Nao foi possivel conectar ao servidor. Tente novamente em instantes.'
     }
+    const orfaos = falha.errosForaDe(CAMPOS_DO_FORMULARIO)
+    if (orfaos.length > 0) {
+      return orfaos.map((item) => item.erro).join(' ')
+    }
     return falha.mensagem
   }
+
+  const avisoGeral =
+    erro && (erro.erros.length === 0 || erro.errosForaDe(CAMPOS_DO_FORMULARIO).length > 0)
+      ? mensagemGeral(erro)
+      : null
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-10 px-6 py-16">
@@ -144,10 +155,8 @@ export function LoginPage() {
           />
         </div>
 
-        {erro && erro.erros.length === 0 ? (
-          <p className="border-l-2 border-perigo bg-superficie px-4 py-3 text-sm">
-            {mensagemGeral(erro)}
-          </p>
+        {avisoGeral ? (
+          <p className="border-l-2 border-perigo bg-superficie px-4 py-3 text-sm">{avisoGeral}</p>
         ) : null}
 
         <div className="flex flex-col items-start gap-5">

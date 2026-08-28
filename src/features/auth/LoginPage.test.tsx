@@ -70,7 +70,7 @@ describe('LoginPage', () => {
           {
             status: 400,
             mensagem: 'Erro de validação',
-            erros: [{ campo: 'email', mensagem: 'formato de email invalido' }],
+            erros: [{ campo: 'email', erro: 'formato de email invalido' }],
           },
           { status: 400 },
         ),
