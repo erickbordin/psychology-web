@@ -17,3 +17,8 @@ export function criarAnotacao(pacienteId: string, anotacao: string): Promise<Ano
     body: JSON.stringify({ anotacao }),
   })
 }
+
+/** A exclusao e soft delete no servidor: some da lista, permanece na auditoria. */
+export function excluirAnotacao(anotacaoId: string): Promise<void> {
+  return pedir<void>(`/anotacoes/${anotacaoId}`, { method: 'DELETE' })
+}
