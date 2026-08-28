@@ -3,9 +3,9 @@
 Frontend do consultório — interface do psicólogo para a
 [psychology-api](https://github.com/erickbordin/psychology-api).
 
-> **Status:** esqueleto vertical. Entrar, cadastrar paciente e registrar anotação
-> de sessão funcionam. Agenda, série recorrente, lembretes e trilha de auditoria
-> ainda não foram construídos, e o visual final não foi aplicado.
+> **Status:** as cinco telas da spec estão de pé — agenda, pacientes, ficha
+> (anotações, lembretes, consultas), série semanal e trilha de auditoria. Falta
+> hospedar: hoje o conjunto só roda local, com a API em `localhost:8080`.
 
 ## Stack
 
@@ -18,6 +18,21 @@ Frontend do consultório — interface do psicólogo para a
 | Estilo | Tailwind v4 (tokens CSS-first) |
 | Testes | Vitest + Testing Library + MSW |
 | E2E | Playwright |
+
+## Telas
+
+| Rota | O que faz |
+|---|---|
+| `/agenda?de&ate` | agenda do intervalo; sem parâmetros, hoje. Agendar, remarcar, mudar status, excluir |
+| `/agenda` → série | série semanal com preview das datas antes de criar, e cancelamento da série inteira |
+| `/pacientes?nome` | lista com busca, cadastro, edição e exclusão |
+| `/pacientes/:id/anotacoes` | registrar e ler as sessões |
+| `/pacientes/:id/lembretes` | pendências do paciente, com conclusão otimista |
+| `/pacientes/:id/consultas` | histórico de consultas, só leitura |
+| `/auditoria?entidade&entidadeId&page` | trilha de tudo que foi criado, alterado e excluído |
+
+Filtro e paginação vivem na URL, nunca em `useState`: recarregar preserva, o
+link é compartilhável e cada parâmetro casa um a um com o da API.
 
 ## Rodando localmente
 
@@ -51,10 +66,15 @@ npm run e2e       # E2E de fumaça (exige a API no ar)
 ```
 
 Os handlers do MSW respondem o contrato real da API — envelope de erro,
-`PagedModel`, `401`. O E2E percorre `registrar → entrar → cadastrar → anotar`
-contra a API de verdade, e é o único teste que pega contrato desalinhado entre os
-dois repositórios. Ele já provou o valor: pegou a tela morta em que o login caía
-depois de autenticar, que nenhum teste de componente enxergava.
+`PagedModel`, `401`. O E2E percorre `registrar → entrar → cadastrar paciente →
+anotar → lembrar → agendar → série → trilha` contra a API de verdade, e é o único
+teste capaz de pegar contrato desalinhado entre os dois repositórios.
+
+Ele já provou o valor duas vezes: pegou a tela morta em que o login caía depois
+de autenticar, e pegou que este projeto lia `erros[].mensagem` onde a API manda
+`erros[].erro` — com todos os mocks errados junto, então a suíte inteira ficava
+verde enquanto, contra a API real, um `400` de validação não mostrava nada na
+tela. Por isso existe um teste de fumaça que provoca um `400` de verdade.
 
 ## Documentação
 

@@ -1,7 +1,7 @@
 # Frontend do consultório — design
 
 **Data:** 2026-08-26
-**Status:** aprovado, aguardando plano de implementação
+**Status:** implementado. Passos 1 a 6 da ordem de execução concluídos; resta hospedar.
 **Escopo:** `psychology-web`. Depende de `psychology-api`, spec
 `2026-08-26-sessao-com-refresh-design.md` — refresh, CORS e
 `GET /pacientes/{id}/consultas` precisam existir antes das telas correspondentes.
