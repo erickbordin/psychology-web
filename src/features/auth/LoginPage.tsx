@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 
 import { ErroApi } from '../../api/erro'
 import { registrar } from '../../api/recursos/auth'
@@ -17,8 +18,14 @@ export function LoginPage() {
   const [erro, setErro] = useState<ErroApi | null>(null)
   const [faltando, setFaltando] = useState<string[]>([])
 
+  /**
+   * Quem ja tem sessao nao fica no /login. O placeholder que ficava aqui era um
+   * marcador da Task 5, de quando nao existia rota interna nenhuma para onde ir;
+   * mantido depois da Task 7 ele deixava o usuario preso numa tela morta logo
+   * apos entrar — foi o E2E de fumaca que pegou isso.
+   */
   if (autenticado) {
-    return <p className="p-14 font-serif text-2xl">psychology</p>
+    return <Navigate to="/" replace />
   }
 
   const ehLogin = modo === 'login'

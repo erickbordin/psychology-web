@@ -31,6 +31,21 @@ describe('rotas', () => {
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
   })
 
+  /**
+   * Guarda de regressao do defeito que o E2E de fumaca achou: o LoginPage ficava
+   * numa tela morta depois de autenticar, em vez de entrar na aplicacao.
+   */
+  it('com sessao, quem chega no login e levado para a lista de pacientes', async () => {
+    servidorDeTeste.use(
+      http.post('/auth/refresh', () => HttpResponse.json({ token: 'token-bom' })),
+      http.get('/pacientes', () => HttpResponse.json([])),
+    )
+
+    renderizarComRotas(definicaoDeRotas, '/login')
+
+    expect(await screen.findByRole('heading', { name: 'Pacientes' })).toBeInTheDocument()
+  })
+
   it('mostra carregando enquanto o refresh do boot nao resolve', () => {
     servidorDeTeste.use(
       http.post('/auth/refresh', () =>

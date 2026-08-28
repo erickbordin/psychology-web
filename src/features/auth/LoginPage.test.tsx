@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -96,8 +96,8 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
     const { lerAcesso } = await import('../../api/sessaoEmMemoria')
-    expect(await screen.findByText('psychology')).toBeInTheDocument()
-    expect(lerAcesso()).toBe('token-bom')
+    await waitFor(() => expect(lerAcesso()).toBe('token-bom'))
+    expect(screen.queryByRole('heading', { name: 'Entrar' })).not.toBeInTheDocument()
   })
 
   it('avisa que o servidor esta fora do ar quando o login nao chega la, em vez de dizer credencial invalida', async () => {
