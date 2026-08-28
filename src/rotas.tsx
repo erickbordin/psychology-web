@@ -1,6 +1,9 @@
 import type { RouteObject } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 import { LoginPage } from './features/auth/LoginPage'
+import { FichaPage } from './features/ficha/FichaPage'
+import { PacientesPage } from './features/pacientes/PacientesPage'
 import { Layout } from './ui/Layout'
 import { RotaProtegida } from './ui/RotaProtegida'
 
@@ -12,10 +15,11 @@ export const definicaoDeRotas: RouteObject[] = [
     children: [
       {
         element: <Layout />,
-        // Tasks 7 e 8 acrescentam as rotas de paciente e ficha aqui dentro.
-        // O index vazio existe so para o "/" ter um match terminal e o
-        // Layout (nav + Sair) renderizar antes de existir uma pagina real.
-        children: [{ index: true, element: null }],
+        children: [
+          { index: true, element: <Navigate to="/pacientes" replace /> },
+          { path: 'pacientes', element: <PacientesPage /> },
+          { path: 'pacientes/:pacienteId', element: <FichaPage /> },
+        ],
       },
     ],
   },
