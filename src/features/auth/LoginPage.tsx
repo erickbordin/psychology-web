@@ -1,0 +1,122 @@
+import { useState } from 'react'
+
+import { ErroApi } from '../../api/erro'
+import { registrar } from '../../api/recursos/auth'
+import { Botao } from '../../ui/Botao'
+import { Campo } from '../../ui/Campo'
+import { useSessao } from './useSessao'
+
+type Modo = 'login' | 'registro'
+
+export function LoginPage() {
+  const { autenticado, entrar } = useSessao()
+  const [modo, setModo] = useState<Modo>('login')
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState<ErroApi | null>(null)
+  const [faltando, setFaltando] = useState<string[]>([])
+
+  if (autenticado) {
+    return <p className="p-14 font-serif text-2xl">psychology</p>
+  }
+
+  const ehLogin = modo === 'login'
+
+  /**
+   * O cliente so checa campo vazio — poupa uma ida ao servidor. O resto da
+   * validacao e do envelope da API, que nomeia o campo culpado.
+   */
+  function camposVazios(): string[] {
+    const vazios: string[] = []
+    if (!ehLogin && !nome.trim()) vazios.push('nome')
+    if (!email.trim()) vazios.push('email')
+    if (!senha.trim()) vazios.push('senha')
+    return vazios
+  }
+
+  async function enviar() {
+    const vazios = camposVazios()
+    setFaltando(vazios)
+    setErro(null)
+    if (vazios.length > 0) return
+
+    try {
+      if (ehLogin) {
+        await entrar(email, senha)
+      } else {
+        await registrar(nome, email, senha)
+        await entrar(email, senha)
+      }
+    } catch (falha) {
+      if (falha instanceof ErroApi) {
+        setErro(falha)
+        return
+      }
+      throw falha
+    }
+  }
+
+  function erroDoCampo(campo: string): string | undefined {
+    if (faltando.includes(campo)) return 'campo obrigatorio'
+    if (campo === 'email') {
+      return erro?.mensagemDoCampo('email') ?? erro?.mensagemDoCampo('emailUsuario')
+    }
+    return erro?.mensagemDoCampo(campo)
+  }
+
+  /**
+   * `status === 0` e o marcador do client (Task 2) para "a requisicao nunca
+   * chegou no servidor" — DNS, conexao recusada, API fora do ar. Sem esse
+   * desvio, um 401 de credencial invalida e uma queda de rede cairiam no
+   * mesmo texto generico, e o psicologo ficaria retentando a mesma senha
+   * certa contra um servidor que nao esta no ar.
+   */
+  function mensagemGeral(falha: ErroApi): string {
+    if (falha.status === 0) {
+      return 'Nao foi possivel conectar ao servidor. Tente novamente em instantes.'
+    }
+    return falha.mensagem
+  }
+
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 p-14">
+      <div className="flex flex-col gap-3">
+        <p className="font-mono text-xs tracking-widest text-tinta-3">ACESSO DO PROFISSIONAL</p>
+        <h1 className="font-serif text-4xl font-light">{ehLogin ? 'Entrar' : 'Criar conta'}</h1>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {ehLogin ? null : (
+          <Campo rotulo="Nome" valor={nome} aoMudar={setNome} erro={erroDoCampo('nome')} />
+        )}
+        <Campo rotulo="E-mail" valor={email} aoMudar={setEmail} erro={erroDoCampo('email')} />
+        <Campo
+          rotulo="Senha"
+          tipo="password"
+          valor={senha}
+          aoMudar={setSenha}
+          erro={erroDoCampo('senha')}
+        />
+      </div>
+
+      {erro && erro.erros.length === 0 ? (
+        <p className="border-l-2 border-perigo bg-superficie p-4 text-sm">{mensagemGeral(erro)}</p>
+      ) : null}
+
+      <div className="flex flex-col items-start gap-4">
+        <Botao onClick={() => void enviar()}>{ehLogin ? 'Entrar' : 'Cadastrar'}</Botao>
+        <Botao
+          variante="texto"
+          onClick={() => {
+            setModo(ehLogin ? 'registro' : 'login')
+            setErro(null)
+            setFaltando([])
+          }}
+        >
+          {ehLogin ? 'Criar conta' : 'Já tenho conta'}
+        </Botao>
+      </div>
+    </main>
+  )
+}
