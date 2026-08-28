@@ -100,6 +100,54 @@ describe('LoginPage', () => {
     expect(screen.queryByRole('heading', { name: 'Entrar' })).not.toBeInTheDocument()
   })
 
+  it('Enter no ultimo campo envia, sem exigir o mouse', async () => {
+    let chamou = false
+    servidorDeTeste.use(
+      http.post('/auth/login', () => {
+        chamou = true
+        return HttpResponse.json({ token: 'token-bom' })
+      }),
+    )
+
+    renderizarLogin()
+    await userEvent.type(await screen.findByLabelText('E-mail'), 'ana@teste.com')
+    await userEvent.type(screen.getByLabelText('Senha'), 'senhaforte123{Enter}')
+
+    await waitFor(() => expect(chamou).toBe(true))
+  })
+
+  it('a marca de campo obrigatorio sai assim que o campo e preenchido', async () => {
+    renderizarLogin()
+    await userEvent.click(await screen.findByRole('button', { name: 'Entrar' }))
+    expect(await screen.findAllByText('campo obrigatorio')).toHaveLength(2)
+
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@teste.com')
+
+    expect(screen.getAllByText('campo obrigatorio')).toHaveLength(1)
+  })
+
+  it('desabilita o envio enquanto a chamada esta em voo, para nao cadastrar duas vezes', async () => {
+    let liberar: () => void = () => {}
+    const emVoo = new Promise<void>((resolve) => {
+      liberar = resolve
+    })
+    servidorDeTeste.use(
+      http.post('/auth/login', async () => {
+        await emVoo
+        return HttpResponse.json({ token: 'token-bom' })
+      }),
+    )
+
+    renderizarLogin()
+    await userEvent.type(await screen.findByLabelText('E-mail'), 'ana@teste.com')
+    await userEvent.type(screen.getByLabelText('Senha'), 'senhaforte123')
+    const enviar = screen.getByRole('button', { name: 'Entrar' })
+    await userEvent.click(enviar)
+
+    await waitFor(() => expect(enviar).toBeDisabled())
+    liberar()
+  })
+
   it('avisa que o servidor esta fora do ar quando o login nao chega la, em vez de dizer credencial invalida', async () => {
     servidorDeTeste.use(http.post('/auth/login', () => HttpResponse.error()))
 

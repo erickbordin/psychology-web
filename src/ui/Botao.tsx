@@ -8,8 +8,8 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Botao({ children, variante = 'primario', ...resto }: Props) {
   const estilo =
     variante === 'primario'
-      ? 'h-11 px-5 bg-tinta text-superficie text-sm'
-      : 'text-sm text-acento py-1'
+      ? 'h-11 px-5 bg-tinta text-superficie text-sm disabled:opacity-40'
+      : 'text-sm text-acento py-1 disabled:opacity-40'
 
   return (
     <button type="button" className={estilo} {...resto}>

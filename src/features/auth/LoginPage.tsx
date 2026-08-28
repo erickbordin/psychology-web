@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import type { FormEvent } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 import { ErroApi } from '../../api/erro'
 import { registrar } from '../../api/recursos/auth'
@@ -11,21 +12,25 @@ type Modo = 'login' | 'registro'
 
 export function LoginPage() {
   const { autenticado, entrar } = useSessao()
+  const local = useLocation()
   const [modo, setModo] = useState<Modo>('login')
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState<ErroApi | null>(null)
   const [faltando, setFaltando] = useState<string[]>([])
+  const [enviando, setEnviando] = useState(false)
 
   /**
-   * Quem ja tem sessao nao fica no /login. O placeholder que ficava aqui era um
+   * Quem ja tem sessao nao fica no /login, e volta para onde tentava chegar — a
+   * RotaProtegida deixa o destino no state. O placeholder que ficava aqui era um
    * marcador da Task 5, de quando nao existia rota interna nenhuma para onde ir;
    * mantido depois da Task 7 ele deixava o usuario preso numa tela morta logo
    * apos entrar — foi o E2E de fumaca que pegou isso.
    */
   if (autenticado) {
-    return <Navigate to="/" replace />
+    const destino = (local.state as { de?: string } | null)?.de
+    return <Navigate to={destino ?? '/'} replace />
   }
 
   const ehLogin = modo === 'login'
@@ -42,12 +47,16 @@ export function LoginPage() {
     return vazios
   }
 
-  async function enviar() {
+  async function enviar(evento: FormEvent) {
+    evento.preventDefault()
+    if (enviando) return
+
     const vazios = camposVazios()
     setFaltando(vazios)
     setErro(null)
     if (vazios.length > 0) return
 
+    setEnviando(true)
     try {
       if (ehLogin) {
         await entrar(email, senha)
@@ -61,11 +70,18 @@ export function LoginPage() {
         return
       }
       throw falha
+    } finally {
+      setEnviando(false)
     }
   }
 
-  function erroDoCampo(campo: string): string | undefined {
-    if (faltando.includes(campo)) return 'campo obrigatorio'
+  /**
+   * A marca de campo obrigatorio olha o valor de agora, nao so o retrato do
+   * ultimo envio: sem isso ela continuava embaixo do campo depois de o usuario
+   * te-lo preenchido, ate ele tentar enviar outra vez.
+   */
+  function erroDoCampo(campo: string, valorDoCampo: string): string | undefined {
+    if (faltando.includes(campo) && !valorDoCampo.trim()) return 'campo obrigatorio'
     if (campo === 'email') {
       return erro?.mensagemDoCampo('email') ?? erro?.mensagemDoCampo('emailUsuario')
     }
@@ -93,37 +109,56 @@ export function LoginPage() {
         <h1 className="font-serif text-4xl font-light">{ehLogin ? 'Entrar' : 'Criar conta'}</h1>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {ehLogin ? null : (
-          <Campo rotulo="Nome" valor={nome} aoMudar={setNome} erro={erroDoCampo('nome')} />
-        )}
-        <Campo rotulo="E-mail" valor={email} aoMudar={setEmail} erro={erroDoCampo('email')} />
-        <Campo
-          rotulo="Senha"
-          tipo="password"
-          valor={senha}
-          aoMudar={setSenha}
-          erro={erroDoCampo('senha')}
-        />
-      </div>
+      {/* form de verdade, e nao um punhado de inputs: e o que faz o Enter no
+          ultimo campo enviar, do jeito que qualquer tela de login se comporta. */}
+      <form onSubmit={(evento) => void enviar(evento)} className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
+          {ehLogin ? null : (
+            <Campo
+              rotulo="Nome"
+              valor={nome}
+              aoMudar={setNome}
+              autoPreenchimento="name"
+              erro={erroDoCampo('nome', nome)}
+            />
+          )}
+          <Campo
+            rotulo="E-mail"
+            valor={email}
+            aoMudar={setEmail}
+            autoPreenchimento="username"
+            erro={erroDoCampo('email', email)}
+          />
+          <Campo
+            rotulo="Senha"
+            tipo="password"
+            valor={senha}
+            aoMudar={setSenha}
+            autoPreenchimento={ehLogin ? 'current-password' : 'new-password'}
+            erro={erroDoCampo('senha', senha)}
+          />
+        </div>
 
-      {erro && erro.erros.length === 0 ? (
-        <p className="border-l-2 border-perigo bg-superficie p-4 text-sm">{mensagemGeral(erro)}</p>
-      ) : null}
+        {erro && erro.erros.length === 0 ? (
+          <p className="border-l-2 border-perigo bg-superficie p-4 text-sm">{mensagemGeral(erro)}</p>
+        ) : null}
 
-      <div className="flex flex-col items-start gap-4">
-        <Botao onClick={() => void enviar()}>{ehLogin ? 'Entrar' : 'Cadastrar'}</Botao>
-        <Botao
-          variante="texto"
-          onClick={() => {
-            setModo(ehLogin ? 'registro' : 'login')
-            setErro(null)
-            setFaltando([])
-          }}
-        >
-          {ehLogin ? 'Criar conta' : 'Já tenho conta'}
-        </Botao>
-      </div>
+        <div className="flex flex-col items-start gap-4">
+          <Botao type="submit" disabled={enviando}>
+            {ehLogin ? 'Entrar' : 'Cadastrar'}
+          </Botao>
+          <Botao
+            variante="texto"
+            onClick={() => {
+              setModo(ehLogin ? 'registro' : 'login')
+              setErro(null)
+              setFaltando([])
+            }}
+          >
+            {ehLogin ? 'Criar conta' : 'Já tenho conta'}
+          </Botao>
+        </div>
+      </form>
     </main>
   )
 }
