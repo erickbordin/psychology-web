@@ -29,8 +29,8 @@ export function Campo({
   const idDoErro = `${id}-erro`
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm text-tinta-2">
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium text-tinta-2">
         {rotulo}
       </label>
       <input
@@ -42,7 +42,11 @@ export function Campo({
         aria-invalid={erro ? true : undefined}
         aria-describedby={erro ? idDoErro : undefined}
         onChange={(evento) => aoMudar(evento.target.value)}
-        className="border-b border-linha bg-transparent py-2 text-base outline-none focus:border-acento"
+        /* o campo em foco acende: mudanca de cor da regua mais o papel atras,
+           sem alterar espessura de borda, que empurraria o layout */
+        className={`border-b bg-superficie px-3 py-2.5 text-base outline-none transition-colors placeholder:text-tinta-3 ${
+          erro ? 'border-perigo' : 'border-linha focus:border-acento'
+        }`}
       />
       {erro ? (
         <span id={idDoErro} className="text-sm text-perigo">

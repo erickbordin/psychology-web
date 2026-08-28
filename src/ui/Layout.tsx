@@ -5,42 +5,48 @@ import { Botao } from './Botao'
 
 const ITENS = [{ para: '/pacientes', rotulo: 'Pacientes' }]
 
+/**
+ * A moldura e constante: mesma barra, mesma coluna, mesma medida em toda tela.
+ * O que muda e o conteudo dentro dela. Uma coluna medida em vez da barra lateral
+ * de 240px que segurava um unico link — este produto tem duas telas, nao um
+ * painel.
+ */
 export function Layout() {
   const { sair } = useSessao()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
       <nav
         aria-label="Navegação principal"
-        className="flex w-60 shrink-0 flex-col gap-8 border-r border-linha bg-superficie p-6"
+        className="sticky top-0 z-10 border-b border-linha bg-fundo/90 backdrop-blur"
       >
-        <p className="font-serif text-lg">
-          psychology<span className="font-mono text-xs text-tinta-3">/api</span>
-        </p>
+        <div className="mx-auto flex h-14 w-full max-w-3xl items-center gap-8 px-6">
+          <span className="font-serif text-lg leading-none">psychology</span>
 
-        <ul className="flex flex-col gap-1">
-          {ITENS.map((item) => (
-            <li key={item.para}>
-              <NavLink
-                to={item.para}
-                className={({ isActive }) =>
-                  `block rounded px-3 py-2 text-sm ${isActive ? 'bg-fundo text-tinta' : 'text-tinta-2'}`
-                }
-              >
-                {item.rotulo}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+          <ul className="flex flex-1 items-center gap-6">
+            {ITENS.map((item) => (
+              <li key={item.para}>
+                <NavLink
+                  to={item.para}
+                  className={({ isActive }) =>
+                    `text-sm font-medium underline-offset-8 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento ${
+                      isActive ? 'text-tinta underline decoration-acento decoration-2' : 'text-tinta-2 hover:text-tinta'
+                    }`
+                  }
+                >
+                  {item.rotulo}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
 
-        <div className="mt-auto">
           <Botao variante="texto" onClick={() => void sair()}>
             Sair
           </Botao>
         </div>
       </nav>
 
-      <main className="min-w-0 flex-1 p-10">
+      <main className="mx-auto w-full max-w-3xl px-6 pt-12 pb-24">
         <Outlet />
       </main>
     </div>
