@@ -244,3 +244,33 @@ prontuário. Notificações. Nada disso é pré-requisito do MVP.
 - **Remote no GitHub.** O repositório é local até que você o crie.
 - **Agenda semanal.** O desenho cobre o dia. A API já aceita intervalo, então a
   visão de semana é barata — mas não entra sem alguém pedir.
+
+## Correções da spec vindas da execução
+
+Escritas depois de rodar o esqueleto vertical. Onde a spec era ambígua ou
+incompleta, o texto abaixo manda.
+
+- **Fonte declarada é fonte carregada.** "Tokens da direção visual" não se
+  cumpre com `--font-serif` apontando para uma família que o documento nunca
+  baixa. O requisito só está atendido quando existe `<link>` (ou `@font-face`)
+  e a família aparece na tela.
+- **Autenticar é entrar na aplicação.** Nenhuma tela pode ficar num estado
+  "autenticado, sem destino". Ao autenticar, o login navega para o destino que
+  exigiu a sessão e, na falta dele, para a raiz.
+- **A rota protegida carrega o destino.** O redirecionamento para `/login`
+  leva o caminho pretendido no `state`, para o login devolver o usuário onde ele
+  estava tentando chegar.
+- **Envio é estado, não evento.** Todo formulário trava o botão de envio
+  enquanto a chamada está em voo. Vale sobretudo para anotação, que a API não
+  deixa editar nem apagar: uma gravação duplicada fica no histórico para sempre.
+- **Formulário é `<form>`.** `Enter` no último campo envia.
+- **A mensagem de erro do campo fica fora do `<label>`.** Dentro dele, ela
+  entra no nome acessível do input. Ligação por `aria-describedby`, mais
+  `aria-invalid` no input.
+- **Marca de campo obrigatório olha o valor atual**, não o retrato do último
+  envio: ela sai assim que o campo é preenchido.
+- **`e2e/` fica fora do glob do Vitest.** O `test()` do Playwright não roda
+  dentro do Vitest.
+- **Placeholder tem dono e data de morte.** Um placeholder criado porque a
+  peça de verdade ainda não existe só entra acompanhado do item, na tarefa que
+  cria a peça, que o remove.

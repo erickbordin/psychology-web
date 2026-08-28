@@ -2716,3 +2716,27 @@ Filtro `?nome` na lista de pacientes, edição e exclusão de paciente, lembrete
 histórico de consultas na ficha, agenda, série recorrente, trilha de auditoria e
 o visual final. Tudo isso está na spec e entra nas etapas 3 a 6 da ordem de
 execução — este plano é o passo 2, o esqueleto vertical.
+
+---
+
+## Defeitos deste plano encontrados na execução
+
+Registrados aqui porque o plano acima ficou como está — o que rodou é o código,
+não o texto. Quem reusar estes moldes num próximo plano herda os defeitos.
+
+| # | Onde | Defeito | Como foi fechado |
+|---|---|---|---|
+| 1 | Task 1 | `tsconfig` do brief não compila sob TypeScript 7: projeto referenciado com `noEmit` dá TS6310, e falta `vite/client` nos `types` dá TS2882. O brief instalava `typescript` sem pin e o `latest` trouxe o 7.0.2. | `outDir: .tsbuild` em vez de `noEmit`, `vite/client` nos types. Pinar a major do TypeScript no próximo scaffold. |
+| 2 | Task 2 | Código de teste do brief chamava `pedir(...)` sem type arg, `T` inferia `unknown`, `tsc` quebrava (TS18046). | Type arg explícito. |
+| 3 | Task 2 | `ErroApi` do brief nunca expunha `mensagem` — só o `message` herdado. A asserção `.not.toBe('')` do próprio brief comparava `undefined` com string vazia: vacuamente verdadeira. | Campo `mensagem` próprio na classe. |
+| 4 | Task 2 | Falha de transporte escapava como `TypeError` cru, furando a restrição global "todo erro chega como `ErroApi`". | `status: 0` sintético, testado com `HttpResponse.error()`. |
+| 5 | Task 5 | Teste do brief usava `findByText('campo obrigatorio')` num cenário em que dois campos ficam vazios ao mesmo tempo — o singular do Testing Library lança com dois matches. | `findAllByText(...).toHaveLength(2)`. |
+| 6 | Task 6 | `rotas.tsx` do brief tinha `children: []` sob uma rota sem `path` e sem `index`. Pelo `flattenRoutes` do react-router, essa rota nunca entra na árvore de matching: o `<Layout />` ficava inalcançável e `/` renderizava vazio com sessão válida. | `children: [{ index: true, element: null }]`, substituído na Task 7 por `<Navigate to="/pacientes" replace />`. |
+| 7 | Task 5 + Task 7 | O `<p>psychology</p>` que a Task 5 renderizava quando `autenticado` era placeholder legítimo enquanto não existia rota interna. A Task 7 criou a rota e **não** tinha passo para remover o placeholder: registrar/entrar levava a uma tela morta. Sete arquivos de teste de componente não viam — foi o E2E da Task 9. | `<Navigate to={destino ?? '/'} replace />`. **Lição de plano: placeholder criado numa task precisa de item explícito de remoção na task que o torna obsoleto.** |
+| 8 | Task 9 | O brief criou `e2e/` sem restringir o glob do Vitest, então o `vitest` passou a coletar `fluxo-de-fumaca.spec.ts` e o `test()` do Playwright explodiu dentro dele. | `include: ['src/**/*.{test,spec}.{ts,tsx}']` no `vite.config.ts`. |
+| 9 | Task 1 | As três famílias declaradas em `tokens.css` nunca eram carregadas — nenhum `<link>`, nenhum `@font-face`. O requisito "tokens da direção visual" existia só no nome do token; o navegador caía em Georgia + sans do sistema. | Links do Google Fonts no `index.html`. |
+| 10 | Task 5 | `Campo` renderizava o erro **dentro** do `<label>`, então o nome acessível do input virava "E-mail campo obrigatorio" — leitor de tela anunciava a falha como parte do rótulo, e busca exata por rótulo parava de achar o input assim que havia erro. | Erro fora do label, `htmlFor`/`id` explícitos, `aria-describedby` e `aria-invalid`. |
+| 11 | Task 5 | Nenhum `<form>`: `Enter` no campo de senha não enviava. Numa tela de login isso é comportamento esperado universal. | `<form onSubmit>` com o primário em `type="submit"`. |
+| 12 | Task 5 | `erroDoCampo` olhava só o retrato do último envio (`faltando.includes(campo)`), então "campo obrigatorio" ficava embaixo do campo depois de preenchido. A Task 7 já nasceu com a versão que também olha o valor atual — o plano ficou inconsistente entre as duas. | Mesma assinatura das duas telas: `erroDoCampo(campo, valorAtual)`. |
+| 13 | Tasks 5, 7, 8 | Nenhum botão de envio travava durante a chamada. Em `registrar` o duplo clique produz 201 + 409 e mostra "e-mail já cadastrado" logo depois de criar a conta; em anotação, que não tem `PUT` nem `DELETE`, a gravação duplicada fica no histórico para sempre. | `disabled` enquanto em voo nas três telas, com `disabled:opacity-40` no `Botao`. |
+| 14 | Task 6 | `RotaProtegida` mandava para `/login` sem levar o destino, então quem abre um link direto para a ficha de um paciente e precisa entrar caía sempre na lista. | Destino no `state` do `Navigate`, lido pelo `LoginPage`. |
