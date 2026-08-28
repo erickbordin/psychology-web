@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { ErroApi } from '../../api/erro'
 import { Botao } from '../../ui/Botao'
 import { Campo } from '../../ui/Campo'
+import { dataCurta } from '../../ui/data'
 import { useCriarPaciente, usePacientes } from './queries'
 
 export function PacientesPage() {
@@ -42,18 +43,21 @@ export function PacientesPage() {
   const total = pacientes?.length ?? 0
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex items-end justify-between gap-6">
-        <div className="flex flex-col gap-3">
-          <p className="font-mono text-xs tracking-widest text-tinta-3">CADASTRO</p>
-          <h1 className="font-serif text-4xl font-light">Pacientes</h1>
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-wrap items-end justify-between gap-6 border-b border-linha pb-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-serif text-4xl leading-none">Pacientes</h1>
+          {pacientes ? (
+            <p className="text-sm text-tinta-2">
+              {total === 1 ? '1 paciente' : `${total} pacientes`}
+            </p>
+          ) : null}
         </div>
         <Botao onClick={() => setCriando((antes) => !antes)}>Novo paciente</Botao>
       </header>
 
       {criando ? (
-        <section className="flex max-w-md flex-col gap-5 border border-linha bg-superficie p-6">
-          <p className="font-mono text-xs tracking-widest text-tinta-3">POST /pacientes</p>
+        <section className="flex max-w-md flex-col gap-6 border border-linha p-6">
           <Campo rotulo="Nome" valor={nome} aoMudar={setNome} erro={erroDoCampo('nome', nome)} />
           <Campo
             rotulo="Data de nascimento"
@@ -62,41 +66,43 @@ export function PacientesPage() {
             exemplo="1991-04-12"
             erro={erroDoCampo('dataNascimento', nascimento)}
           />
-          <Botao onClick={() => void cadastrar()} disabled={criar.isPending}>
-            Cadastrar
-          </Botao>
+          <div>
+            <Botao onClick={() => void cadastrar()} disabled={criar.isPending}>
+              Cadastrar
+            </Botao>
+          </div>
         </section>
       ) : null}
 
       {isPending ? <p className="text-sm text-tinta-3">Carregando…</p> : null}
-      {error ? <p className="text-sm text-perigo">{(error as Error).message}</p> : null}
+      {error ? (
+        <p className="border-l-2 border-perigo bg-superficie px-4 py-3 text-sm">
+          {(error as Error).message}
+        </p>
+      ) : null}
 
       {pacientes ? (
-        <section className="flex flex-col gap-3">
-          <p className="text-sm text-tinta-2">
-            {total === 1 ? '1 paciente' : `${total} pacientes`}
+        total === 0 ? (
+          <p className="py-16 text-center text-sm text-tinta-2">
+            Nenhum paciente cadastrado ainda.
           </p>
-
-          {total === 0 ? (
-            <p className="py-14 text-center text-sm text-tinta-3">
-              Nenhum paciente cadastrado ainda.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-px">
-              {pacientes.map((paciente) => (
-                <li key={paciente.idPaciente} className="bg-superficie">
-                  <Link
-                    to={`/pacientes/${paciente.idPaciente}`}
-                    className="flex items-center justify-between gap-6 px-5 py-4 text-sm"
-                  >
-                    <span>{paciente.nome}</span>
-                    <span className="font-mono text-xs text-tinta-3">{paciente.dataNascimento}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        ) : (
+          <ul>
+            {pacientes.map((paciente) => (
+              <li key={paciente.idPaciente} className="border-b border-linha">
+                <Link
+                  to={`/pacientes/${paciente.idPaciente}`}
+                  className="-mx-3 flex items-baseline justify-between gap-6 px-3 py-4 transition-colors hover:bg-superficie focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento"
+                >
+                  <span className="font-serif text-lg">{paciente.nome}</span>
+                  <span className="shrink-0 text-sm tabular-nums text-tinta-2">
+                    {dataCurta(paciente.dataNascimento)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )
       ) : null}
     </div>
   )

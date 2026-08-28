@@ -103,10 +103,15 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-8 p-14">
-      <div className="flex flex-col gap-3">
-        <p className="font-mono text-xs tracking-widest text-tinta-3">ACESSO DO PROFISSIONAL</p>
-        <h1 className="font-serif text-4xl font-light">{ehLogin ? 'Entrar' : 'Criar conta'}</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-10 px-6 py-16">
+      <div className="flex flex-col gap-4">
+        <span className="font-serif text-lg leading-none">psychology</span>
+        <h1 className="font-serif text-4xl leading-tight">{ehLogin ? 'Entrar' : 'Criar conta'}</h1>
+        <p className="text-sm text-tinta-2">
+          {ehLogin
+            ? 'Seus pacientes e as anotações de sessão ficam aqui.'
+            : 'Uma conta por profissional. Ninguém mais enxerga seus pacientes.'}
+        </p>
       </div>
 
       {/* form de verdade, e nao um punhado de inputs: e o que faz o Enter no
@@ -140,10 +145,12 @@ export function LoginPage() {
         </div>
 
         {erro && erro.erros.length === 0 ? (
-          <p className="border-l-2 border-perigo bg-superficie p-4 text-sm">{mensagemGeral(erro)}</p>
+          <p className="border-l-2 border-perigo bg-superficie px-4 py-3 text-sm">
+            {mensagemGeral(erro)}
+          </p>
         ) : null}
 
-        <div className="flex flex-col items-start gap-4">
+        <div className="flex flex-col items-start gap-5">
           <Botao type="submit" disabled={enviando}>
             {ehLogin ? 'Entrar' : 'Cadastrar'}
           </Botao>
