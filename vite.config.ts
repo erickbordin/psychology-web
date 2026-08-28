@@ -19,5 +19,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/teste/setup.ts'],
     css: true,
+    // `e2e/` e do Playwright: o `test()` dele explode dentro do Vitest.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 })
